@@ -12,6 +12,8 @@ import {createProvidersRouter} from './presentation/http/routes/providers.routes
 import {errorHandler} from './presentation/http/middleware/error-handler.js';
 
 export function createApp(){
+ if(env.GOOGLE_PLACES_ENABLED) throw new Error('Google Places is not implemented yet; keep GOOGLE_PLACES_ENABLED=false.');
+ if(!env.USE_FIXTURES) throw new Error('No live provider source is configured. Enable fixtures for local development.');
  const app=express();
  app.disable('x-powered-by');
  app.use(helmet());
@@ -19,8 +21,7 @@ export function createApp(){
  app.use(express.json({limit:'32kb'}));
  app.use(pinoHttp({logger}));
  app.use('/v1',rateLimit({windowMs:env.RATE_LIMIT_WINDOW_MS,limit:env.RATE_LIMIT_MAX,standardHeaders:'draft-8',legacyHeaders:false}));
- const sources=env.USE_FIXTURES?[new FixtureProviderSource()]:[];
- const searchNearby=new SearchNearbyProviders(sources);
+ const searchNearby=new SearchNearbyProviders([new FixtureProviderSource()]);
  app.get('/',(_request,response)=>response.json({service:'roadhelp-backend',apiVersion:'v1'}));
  app.use('/v1/health',healthRouter);
  app.use('/v1/providers',createProvidersRouter(searchNearby));
