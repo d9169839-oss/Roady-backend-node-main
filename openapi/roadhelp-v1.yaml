@@ -1,0 +1,38 @@
+openapi: 3.1.0
+info:
+  title: RoadHelp API
+  version: 1.0.0
+  description: Nearby roadside-service discovery. No dispatch or booking.
+servers:
+  - url: http://localhost:3000
+paths:
+  /v1/health:
+    get:
+      summary: Health check
+      responses:
+        '200': { description: Service is healthy }
+  /v1/providers/nearby:
+    get:
+      summary: Find nearby roadside providers
+      parameters:
+        - in: query
+          name: latitude
+          required: true
+          schema: { type: number, minimum: -90, maximum: 90 }
+        - in: query
+          name: longitude
+          required: true
+          schema: { type: number, minimum: -180, maximum: 180 }
+        - in: query
+          name: radiusMeters
+          schema: { type: integer, default: 25000, minimum: 1, maximum: 50000 }
+        - in: query
+          name: category
+          schema: { type: string, enum: [all, tow, tyre, mechanic, battery, fuel], default: all }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, minimum: 1, maximum: 50 }
+      responses:
+        '200': { description: Providers sorted nearest-first }
+        '400': { description: Invalid query parameters }
+        '429': { description: Rate limit exceeded }
